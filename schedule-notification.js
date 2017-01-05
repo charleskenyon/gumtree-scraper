@@ -21,7 +21,7 @@ const trace = _.curry(function(x) {
 // =================
 
 const queryCallback = function(err, docs) {
-	if (!err && docs.length > 0) return docs;
+	if (!err) return docs;
 }
 
 const createEmailContent = _.curry(function(ac, cv) {
@@ -39,7 +39,7 @@ const createEmailJson = function(content) {
 }
 
 const sendEmail = _.curry(function(transporter, email){
-	transporter.sendMail(email);
+	if (email.text !== '') transporter.sendMail(email);
 });
 
 // =================

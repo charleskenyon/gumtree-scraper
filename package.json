@@ -1,0 +1,21 @@
+{
+  "name": "gumtree-scraper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "http": "0.0.0",
+    "moment": "^2.17.1",
+    "mongojs": "^2.4.0",
+    "node-schedule": "^1.2.0",
+    "nodemailer": "^2.7.0",
+    "ramda": "^0.22.1",
+    "request": "^2.79.0"
+  }
+}

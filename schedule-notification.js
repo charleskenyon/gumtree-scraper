@@ -51,7 +51,7 @@ const processEmail = _.compose(sendEmail(transporter), createEmail)
 const processNotifications = _.compose(processEmail, queryCallback);
 
 const scheduleNotifications = function(db) {
-	schedule.scheduleJob('* * * * *', function() {
+	schedule.scheduleJob('*/5 * * * *', function() {
 		const time = moment().format('DD/MM/YY, h:mm:ss a');
 		db.gumtree.find({notified: false}, processNotifications);
 		db.gumtree.update({notified: false}, {$set: {notified: true}}, {multi: true});

@@ -2,7 +2,8 @@ const schedule = require('node-schedule'),
 	_ = require('ramda'),
 	nodemailer = require('nodemailer'),
 	moment = require('moment'),
-	db = require('./db.js');
+	db = require('./db.js'),
+	{queryCallback} = require('./utils.js');
 
 const transporter = nodemailer.createTransport({
     service: 'Gmail',
@@ -12,17 +13,8 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const trace = _.curry(function(x) {
-	console.table(x);
-	return x;
-});
-
 // Utils
 // =================
-
-const queryCallback = function(err, docs) {
-	if (!err) return docs;
-}
 
 const createEmailContent = _.curry(function(ac, cv) {
 	return ac += `${cv.title} - ${cv.price} - ${cv.link} - ${cv.location}\n\n`
@@ -32,13 +24,13 @@ const createEmailJson = function(content) {
 	const mailOptions = {
 	    from: 'gumtree.scraper66@gmail.com', 
 	    to: 'rory.kenyon01@gmail.com', 
-	    subject: 'GUMTREE RECENTLY ADDED', 
+	    subject: `GUMTREE - ${moment().format('DD/MM/YY')}`, 
 	    text: content
 	}
 	return mailOptions;
 }
 
-const sendEmail = _.curry(function(transporter, email){
+const sendEmail = _.curry(function(transporter, email) {
 	if (email.text !== '') transporter.sendMail(email);
 });
 

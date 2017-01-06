@@ -2,19 +2,16 @@ const schedule = require('node-schedule'),
 	_ = require('ramda'),
 	moment = require('moment'),
 	db = require('./db.js'),
-	scraper = require('./scraper.js');
+	scraper = require('./scraper.js'),
+	{queryCallback} = require('./utils.js');
 
 // Utils
 // =================
 
-const queryCallback = function(err, docs) {
-	if (!err) return docs;
-}
-
 const scheduleScrape = function(doc) {
 	schedule.scheduleJob('* * * * *', function() {
-		const time = moment().format('D/MM/YY, h:mm:ss a');
 		scraper(doc.title, doc.location);
+		const time = moment().format('D/MM/YY, h:mm:ss a');
 		console.log(`scrape ${doc.title} on ${time}`);
 	});
 }

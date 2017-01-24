@@ -16,9 +16,13 @@ const url = function(query, location) {
 	return `https://www.gumtree.com/search?q=${query}&search_location=${location}`;
 }
 
-const requestUrl = _.curry(function(callback, url) {
-	request(url, callback);
-});
+const requestUrl = function(url) {
+	return new Promise(function(resolve, reject) {
+		request(url, function(error, response, body) {
+			if (!error) resolve(body);
+		});
+	});
+}
 
 const updataDb = _.curry(function(db, doc) {
 	const now = moment().format('MMMM Do YYYY, h:mm:ss a');
@@ -35,10 +39,6 @@ const updataDb = _.curry(function(db, doc) {
 		{upsert: true}
 	);
 });
-
-const processResponse = function(error, response, body) {
-	if (!error) return body;
-}
 
 const getItems = function($) {
 	return $('.list-listing-mini .natural');
@@ -63,12 +63,12 @@ const scrapeData = function(html) {
 
 const processData = _.compose(_.map(scrapeData), convertToArray, getItems);
 
-const toCheerio = _.compose(cheerio.load, processResponse);
+const processResponse = _.composeP(cheerio.load, requestUrl);
 
-const items = _.compose(processData, toCheerio);
+const items = _.composeP(processData, processResponse);
 
-const getData = _.compose(_.forEach(updataDb(db)), items);
+const getAndUpdateData = _.composeP(_.forEach(updataDb(db)), items);
 
-const scraper = _.compose(requestUrl(getData), url);
+const scraper = _.compose(getAndUpdateData, url);
 
 module.exports = scraper;

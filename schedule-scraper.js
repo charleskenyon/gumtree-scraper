@@ -1,25 +1,22 @@
-const schedule = require('node-schedule'),
-	_ = require('ramda'),
+const _ = require('ramda'),
 	moment = require('moment'),
-	db = require('./db.js'),
 	scraper = require('./scraper.js'),
-	{queryCallback} = require('./utils.js');
+	{queryCallback, initSchedule, queryDb} = require('./utils.js');
 
-// Utils
+// utils
 // =================
 
-const scheduleScrape = function(doc) {
-	schedule.scheduleJob('* * * * *', function() {
-		scraper(doc.title, doc.location);
-		const time = moment().format('D/MM/YY, h:mm:ss a');
-		console.log(`scrape ${doc.title} on ${time}`);
-	});
+const initScraper = function(doc) {
+	scraper(doc.title, doc.location);
+	console.log(`scrape ${doc.title} on ${moment().format('D/MM/YY, h:mm:ss a')}`);
 }
 
+const queryQueries = queryDb('queries', {}, null);
+
 // =================
 
-const scrapeGumtree = _.compose(_.forEach(scheduleScrape), queryCallback);
+const scrapeGumtree = _.composeP(_.forEach(initScraper), queryQueries);
 
-const schedulGumtreeScraper = (db) => db.queries.find(scrapeGumtree);
+const schedulGumtreeScraper = initSchedule(scrapeGumtree)
 
 module.exports = schedulGumtreeScraper;

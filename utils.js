@@ -1,8 +1,19 @@
-// Utils
-// =================
+const _ = require('ramda'),
+	schedule = require('node-schedule');
 
-const queryCallback = function(err, docs) {
-	if (!err) return docs;
-}
+const initSchedule = _.curry(function(callback, data, cron) {
+	schedule.scheduleJob(cron, callback.bind(this, data));
+});
 
-module.exports = {queryCallback};
+const queryDb = _.curry(function(collection, filter, update, db) {
+	return new Promise(function(resolve, reject) {
+		db[collection].find(filter, function(error, docs) {
+			if (!error) {
+				if (update) update(db, collection);
+				resolve(docs);
+			}
+		});
+	});
+});
+
+module.exports = {initSchedule, queryDb};

@@ -5,11 +5,11 @@ const request = require('request'),
 	db = require('./db.js');
 
 const trace = _.curry(function(x) {
-	console.table(x);
+	console.log(x);
 	return x;
 });
 
-// Utils
+// utils
 // =================
  
 const url = function(query, location) {

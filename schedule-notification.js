@@ -1,9 +1,7 @@
-const schedule = require('node-schedule'),
-	_ = require('ramda'),
+const _ = require('ramda'),
 	nodemailer = require('nodemailer'),
 	moment = require('moment'),
-	db = require('./db.js'),
-	{queryCallback} = require('./utils.js');
+	{initSchedule, queryDb} = require('./utils.js');
 
 const transporter = nodemailer.createTransport({
     service: 'Gmail',
@@ -13,11 +11,22 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Utils
+// utils
 // =================
 
+const logMessage = function(db) {
+	console.log(`check for notifications on ${moment().format('DD/MM/YY, h:mm:ss a')}`);
+	return db;
+}
+
+const updateGumtree = function(db, collection) {
+	db[collection].update({notified: false}, {$set: {notified: true}}, {multi: true});
+}
+
+const queryGumtreeAndUpdate = queryDb('gumtree', {notified: false}, updateGumtree);
+
 const createEmailContent = _.curry(function(ac, cv) {
-	return ac += `${cv.title} - ${cv.price} - ${cv.link} - ${cv.location}\n\n`
+	return ac += `${cv.title} - ${cv.price} - ${cv.link} - ${cv.location}\n\n`;
 });
 
 const createEmailJson = function(content) {
@@ -36,19 +45,12 @@ const sendEmail = _.curry(function(transporter, email) {
 
 // =================
 
-const createEmail = _.compose(createEmailJson, _.reduce(createEmailContent, ''))
+const createEmail = _.compose(createEmailJson, _.reduce(createEmailContent, ''));
 
-const processEmail = _.compose(sendEmail(transporter), createEmail)
+const processEmail = _.compose(sendEmail(transporter), createEmail);
 
-const processNotifications = _.compose(processEmail, queryCallback);
+const getGumtreeData = _.composeP(processEmail, queryGumtreeAndUpdate);
 
-const scheduleNotifications = function(db) {
-	schedule.scheduleJob('*/5 * * * *', function() {
-		const time = moment().format('DD/MM/YY, h:mm:ss a');
-		db.gumtree.find({notified: false}, processNotifications);
-		db.gumtree.update({notified: false}, {$set: {notified: true}}, {multi: true});
-		console.log(`check for notifications on ${time}`);
-	});
-} 
+const scheduleNotifications = initSchedule(_.compose(getGumtreeData, logMessage));
 
 module.exports = scheduleNotifications;

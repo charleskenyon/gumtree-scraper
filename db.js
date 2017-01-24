@@ -1,5 +1,4 @@
 const mongojs = require('mongojs');
-
 var uri;
 
 if (process.argv[2] === 'test') {

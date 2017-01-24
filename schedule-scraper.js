@@ -1,7 +1,7 @@
 const _ = require('ramda'),
 	moment = require('moment'),
 	scraper = require('./scraper.js'),
-	{queryCallback, initSchedule, queryDb} = require('./utils.js');
+	{initSchedule, queryDb} = require('./utils.js');
 
 // utils
 // =================

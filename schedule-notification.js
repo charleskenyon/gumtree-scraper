@@ -1,23 +1,23 @@
-const _ = require('ramda'),
-	nodemailer = require('nodemailer'),
-	moment = require('moment'),
-	{initSchedule, queryDb} = require('./utils.js');
+const _ = require('ramda');
+const nodemailer = require('nodemailer');
+const moment = require('moment');
+const { initSchedule, queryDb } = require('./utils.js');
+const gmailCredentials = require('./credentials').gmail;
 
 const transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {
-        user: 'gumtree.scraper66@gmail.com', 
-        pass: 'gumtreeScraper123' 
+        user: gmailCredentials.outgoing.address, 
+        pass: gmailCredentials.outgoing.password 
     }
 });
 
 // utils
 // =================
 
-const logMessage = function(db) {
+const logNotification = _.tap(function(db) {
 	console.log(`check for notifications on ${moment().format('DD/MM/YY, h:mm:ss a')}`);
-	return db;
-}
+});
 
 const updateGumtree = function(db, collection) {
 	db[collection].update({notified: false}, {$set: {notified: true}}, {multi: true});
@@ -31,8 +31,8 @@ const createEmailContent = _.curry(function(ac, cv) {
 
 const createEmailJson = function(content) {
 	const mailOptions = {
-	    from: 'gumtree.scraper66@gmail.com', 
-	    to: 'rory.kenyon01@gmail.com', 
+	    from: gmailCredentials.outgoing.address, 
+	    to: gmailCredentials.receiving.address, 
 	    subject: `GUMTREE - ${moment().format('DD/MM/YY')}`, 
 	    text: content
 	}
@@ -51,6 +51,6 @@ const processEmail = _.compose(sendEmail(transporter), createEmail);
 
 const getGumtreeData = _.composeP(processEmail, queryGumtreeAndUpdate);
 
-const scheduleNotifications = initSchedule(_.compose(getGumtreeData, logMessage));
+const scheduleNotifications = initSchedule(_.compose(getGumtreeData, logNotification));
 
 module.exports = scheduleNotifications;

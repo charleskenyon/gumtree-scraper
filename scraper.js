@@ -1,13 +1,10 @@
-const request = require('request'),
-	cheerio = require('cheerio'),
-	_ = require('ramda'),
-	moment = require('moment'),
-	db = require('./db.js');
+const request = require('request');
+const cheerio = require('cheerio');
+const _ = require('ramda');
+const moment = require('moment');
+const db = require('./db.js');
 
-const trace = _.curry(function(x) {
-	console.log(x);
-	return x;
-});
+const trace = _.tap(x => console.log(x));
 
 // utils
 // =================
@@ -17,8 +14,8 @@ const url = function(query, location) {
 }
 
 const requestUrl = function(url) {
-	return new Promise(function(resolve, reject) {
-		request(url, function(error, response, body) {
+	return new Promise((resolve, reject) => {
+		request(url, (error, response, body) => {
 			if (!error) resolve(body);
 		});
 	});
@@ -28,7 +25,7 @@ const updataDb = _.curry(function(db, doc) {
 	const now = moment().format('MMMM Do YYYY, h:mm:ss a');
 
 	db.gumtree.update(
-		{"_id": doc["_id"]}, 
+		{ "_id": doc["_id"] }, 
 		{
 			"$set": Object.assign(doc, {last_update_date: now}), 
 			"$setOnInsert": {
@@ -36,17 +33,13 @@ const updataDb = _.curry(function(db, doc) {
 				"notified": false
 			}
 		}, 
-		{upsert: true}
+		{ upsert: true }
 	);
 });
 
-const getItems = function($) {
-	return $('.list-listing-mini .natural');
-}
+const getItems = ($) => $('.list-listing-mini .natural');
 
-const convertToArray = function(obj) {
-	return Array.prototype.slice.call(obj);
-}
+const convertToArray = (obj) => Array.prototype.slice.call(obj);
 
 const scrapeData = function(html) {
 	const $ = cheerio.load(html);

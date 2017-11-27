@@ -10,7 +10,7 @@ const logScrape = _.tap(function(doc) {
 	console.log(`scrape ${doc.title} on ${moment().format('D/MM/YY, h:mm:ss a')}`);
 });
 
-const initScraper = (doc) => scraper(doc.title, doc.location);
+const initScraper = (doc) => scraper(doc.title, doc.location, doc.email);
 
 const queryQueries = queryDb('queries', {}, null);
 

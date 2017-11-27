@@ -2,15 +2,17 @@ const request = require('request');
 const cheerio = require('cheerio');
 const _ = require('ramda');
 const moment = require('moment');
+const { evolveP } = require('./utils.js');
 const db = require('./db.js');
-
-const trace = _.tap(x => console.log(x));
 
 // utils
 // =================
  
-const url = function(query, location) {
-	return `https://www.gumtree.com/search?q=${query}&search_location=${location}`;
+const parseObj = function(query, location, email) {
+	return {
+		data: `https://www.gumtree.com/search?q=${query}&search_location=${location}`,
+		email: email
+	} 
 }
 
 const requestUrl = function(url) {
@@ -21,28 +23,11 @@ const requestUrl = function(url) {
 	});
 }
 
-const updataDb = _.curry(function(db, doc) {
-	const now = moment().format('MMMM Do YYYY, h:mm:ss a');
-
-	db.gumtree.update(
-		{ "_id": doc["_id"] }, 
-		{
-			"$set": Object.assign(doc, {last_update_date: now}), 
-			"$setOnInsert": {
-				"insertion_date": now,
-				"notified": false
-			}
-		}, 
-		{ upsert: true }
-	);
-});
-
 const getItems = ($) => $('.list-listing-mini .natural');
 
 const convertToArray = (obj) => Array.prototype.slice.call(obj);
 
-const scrapeData = function(html) {
-	const $ = cheerio.load(html);
+const scrapeData = function($) {
 	const data = {};
 	data['title'] = $('.listing-title').text().replace(/[^a-zA-Z0-9_ ]/g, "");
 	data['price'] = $('.listing-price').text();
@@ -52,16 +37,39 @@ const scrapeData = function(html) {
 	return data;
 }
 
+const updataDb = _.curry(function(db, obj) {
+	const now = moment().format('MMMM Do YYYY, h:mm:ss a');
+
+	obj['data'].forEach((doc) => {
+		db.gumtree.update(
+			{ "_id": doc["_id"] }, 
+			{
+				"$set": Object.assign(doc, {last_update_date: now}), 
+				"$setOnInsert": {
+					"insertion_date": now,
+					"notified": false
+				},
+				$addToSet: {
+					email: obj.email
+				}
+			}, 
+			{ upsert: true }
+		);
+	});
+});
+
 // =================
 
-const processData = _.compose(_.map(scrapeData), convertToArray, getItems);
+const processEntry = _.compose(scrapeData, cheerio.load);
 
-const processResponse = _.composeP(cheerio.load, requestUrl);
+const processData = _.compose(_.map(processEntry), convertToArray, getItems);
 
-const items = _.composeP(processData, processResponse);
+const gumtreeRequest = _.composeP(cheerio.load, requestUrl);
 
-const getAndUpdateData = _.composeP(_.forEach(updataDb(db)), items);
+const items = _.composeP(processData, gumtreeRequest);
 
-const scraper = _.compose(getAndUpdateData, url);
+const parseDataUpdateDb = _.composeP(updataDb(db), evolveP({data: items}));
+
+const scraper = _.compose(parseDataUpdateDb, parseObj);
 
 module.exports = scraper;

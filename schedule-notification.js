@@ -25,18 +25,31 @@ const updateGumtree = function(db, collection) {
 
 const queryGumtreeAndUpdate = queryDb('gumtree', {notified: false}, updateGumtree);
 
+const seperateByEmail = function(emails, data) {
+	const output = [];
+
+	emails.forEach((v, i) => {
+		const filteredData = data.filter((entry) => {
+			return entry.email.includes(v);
+		}); 
+
+		output.push({ data: filteredData, email: v });
+	});
+
+	return output;
+}
+
 const createEmailContent = _.curry(function(ac, cv) {
 	return ac += `${cv.title} - ${cv.price} - ${cv.link} - ${cv.location}\n\n`;
 });
 
-const createEmailJson = function(content) {
-	const mailOptions = {
+const createEmailJson = function(obj) {
+	return {
 	    from: gmailCredentials.outgoing.address, 
-	    to: gmailCredentials.receiving.address, 
+	    to: obj.email, 
 	    subject: `GUMTREE - ${moment().format('DD/MM/YY')}`, 
-	    text: content
+	    text: obj.data
 	}
-	return mailOptions;
 }
 
 const sendEmail = _.curry(function(transporter, email) {
@@ -45,11 +58,15 @@ const sendEmail = _.curry(function(transporter, email) {
 
 // =================
 
-const createEmail = _.compose(createEmailJson, _.reduce(createEmailContent, ''));
+const filterUniqEmails = _.compose(_.uniq, _.flatten, _.map(_.prop('email')));
+
+const parseData = _.converge(seperateByEmail, [filterUniqEmails, _.tap(() => {})]);
+
+const createEmail = _.compose(createEmailJson, _.evolve({data: _.reduce(createEmailContent, '')}));
 
 const processEmail = _.compose(sendEmail(transporter), createEmail);
 
-const getGumtreeData = _.composeP(processEmail, queryGumtreeAndUpdate);
+const getGumtreeData = _.composeP(_.forEach(processEmail), parseData, queryGumtreeAndUpdate);
 
 const scheduleNotifications = initSchedule(_.compose(getGumtreeData, logNotification));
 

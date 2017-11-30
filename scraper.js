@@ -28,12 +28,18 @@ const getItems = ($) => $('.list-listing-mini .natural');
 const convertToArray = (obj) => Array.prototype.slice.call(obj);
 
 const scrapeData = function($) {
-	const data = {};
-	data['title'] = $('.listing-title').text().replace(/[^a-zA-Z0-9_ ]/g, "");
-	data['price'] = $('.listing-price').text();
-	data['location'] = $('.listing-location .truncate-line').text().replace(/[^a-zA-Z0-9_ ]/g, "");
-	data['_id'] = $('article').attr('data-q').split('-')[1];
-	data['link'] = 'https://www.gumtree.com' + $('.listing-link').attr('href');
+	const data = {
+		title: $('.listing-title').text().replace(/[^a-zA-Z0-9_ ]/g, ""),
+		price: $('.listing-price').text(),
+		location: $('.listing-location .truncate-line').text().replace(/[^a-zA-Z0-9_ ]/g, ""),
+		_id: $('article').attr('data-q').split('-')[1],
+		link: 'https://www.gumtree.com' + $('.listing-link').attr('href')
+	};
+
+	Object.keys(data).forEach((key) => {
+		data[key] = data[key].replace(/\r?\n|\r/g, ""); // remove newlines
+	});
+
 	return data;
 }
 

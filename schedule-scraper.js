@@ -7,7 +7,7 @@ const { initSchedule, queryDb } = require('./utils.js');
 // =================
 
 const logScrape = _.tap(function(doc) {
-	console.log(`scrape ${doc.title} on ${moment().format('D/MM/YY, h:mm:ss a')}`);
+	console.log(`scrape ${doc.title} for ${doc.email} on ${moment().format('D/MM/YY, h:mm:ss a')}`);
 });
 
 const initScraper = (doc) => scraper(doc.title, doc.location, doc.email);

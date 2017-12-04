@@ -39,9 +39,9 @@ const seperateByEmail = function(emails, data) {
 	return output;
 }
 
-const createEmailContent = _.curry(function(ac, cv) {
+const createEmailContent = function(ac, cv) {
 	return ac += `${cv.title} - ${cv.price} - ${cv.link} - ${cv.location}\n\n`;
-});
+};
 
 const createEmailJson = function(obj) {
 	return {
@@ -58,9 +58,9 @@ const sendEmail = _.curry(function(transporter, email) {
 
 // =================
 
-const filterUniqEmails = _.compose(_.uniq, _.flatten, _.map(_.prop('email')));
+const uniqueEmails = _.compose(_.uniq, _.flatten, _.map(_.prop('email')));
 
-const parseData = _.converge(seperateByEmail, [filterUniqEmails, _.tap(() => {})]);
+const parseData = _.converge(seperateByEmail, [uniqueEmails, _.tap(() => {})]);
 
 const createEmail = _.compose(createEmailJson, _.evolve({data: _.reduce(createEmailContent, '')}));
 

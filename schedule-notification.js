@@ -60,7 +60,7 @@ const sendEmail = _.curry(function(transporter, email) {
 
 const uniqueEmails = _.compose(_.uniq, _.flatten, _.map(_.prop('email')));
 
-const parseData = _.converge(seperateByEmail, [uniqueEmails, _.tap(() => {})]);
+const parseData = _.converge(seperateByEmail, [uniqueEmails, _.identity]);
 
 const createEmail = _.compose(createEmailJson, _.evolve({data: _.reduce(createEmailContent, '')}));
 

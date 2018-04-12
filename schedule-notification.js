@@ -7,11 +7,11 @@ const gmailCredentials = require('./credentials').gmail;
 const db = require('./db');
 
 const transporter = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: {
-        user: gmailCredentials.outgoing.address, 
-        pass: gmailCredentials.outgoing.password 
-    }
+	service: 'Gmail',
+	auth: {
+			user: gmailCredentials.outgoing.address, 
+			pass: gmailCredentials.outgoing.password 
+	}
 });
 
 // =================
@@ -44,11 +44,11 @@ const emailText = function(ac, cv) {
 	return ac += `${cv.title} - ${cv.price} - ${cv.link} - ${cv.location}\n\n`;
 }
 
-const mailOptions = (obj) => ({  
+const mailOptions = (obj) => ({
 	from: gmailCredentials.outgoing.address, 
-  to: obj.email, 
-  subject: `GUMTREE - ${moment().format('DD/MM/YY')}`, 
-  text: obj.data
+	to: obj.email, 
+	subject: `GUMTREE - ${moment().format('DD/MM/YY')}`, 
+	text: obj.data
 });
 
 const sendEmail = _.curry(function(transporter, mailOptions) {

@@ -52,12 +52,12 @@ const evolveTask = _.curry(function(transformations, object) {
 
 	return waitAll(tasks).map((arr) => {
 		arr.forEach((v, i) => {
-  		const mapping = outputKeys.filter((key) => {
-  			return output[key] === i;
-  		})[0];
-  		output[mapping] = arr[i];
-  	});
-  	return output;
+			const mapping = outputKeys.filter((key) => {
+				return output[key] === i;
+			})[0];
+			output[mapping] = arr[i];
+		});
+		return output;
 	});
 
 });

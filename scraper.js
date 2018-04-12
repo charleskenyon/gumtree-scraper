@@ -8,7 +8,7 @@ const db = require('./db');
 
 // =================
  
-const parseObj = function(query, location, email) {
+const formatObj = function(query, location, email) {
 	return {
 		data: `https://www.gumtree.com/search?q=${query}&search_location=${location}`,
 		email: email
@@ -69,16 +69,16 @@ const updateEntry = _.curry(function(db, data) {
 
 // =================
 
-const parseEntry = _.compose(scrapeData, cheerio.load);
+const formatEntry = _.compose(scrapeData, cheerio.load);
 
-const parseDataArray = _.compose(_.map(parseEntry), Array.from, getItems, cheerio.load);
+const formatData = _.compose(_.map(formatEntry), Array.from, getItems, cheerio.load);
 
-const gumtreeData = _.compose(_.map(parseDataArray), requestUrl);
+const gumtreeData = _.compose(_.map(formatData), requestUrl);
 
 const updateGumtreeData = _.compose((data) => waitAll(_.map(updateEntry(db), data)), zipEmail);
 
-const parseDataUpdateDb = _.compose(chain(updateGumtreeData), evolveTask({ data: gumtreeData }));
+const formatDataUpdateDb = _.compose(chain(updateGumtreeData), evolveTask({ data: gumtreeData }));
 
-const scraper = _.compose(parseDataUpdateDb, parseObj);
+const scraper = _.compose(formatDataUpdateDb, formatObj);
 
 module.exports = scraper;
